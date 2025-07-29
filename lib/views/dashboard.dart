@@ -3,8 +3,10 @@ import 'dart:ffi';
 import 'dart:async';
 import 'package:coin_api_and_admin_panel/models/booking_model.dart';
 import 'package:coin_api_and_admin_panel/models/coin_data_model.dart';
+import 'package:coin_api_and_admin_panel/views/login.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/adapters.dart';
 
 class Dashboard extends StatefulWidget {
@@ -28,7 +30,7 @@ class _DashboardState extends State<Dashboard> {
   bool isLoading = false;
   bool isEmailValid(String email) {
     final emailRegex = RegExp(
-      r"^[a-zA-Z0-9]+([._%+-]?[a-zA-Z0-9])*@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$",
+      r"^[a-zA-Z][a-zA-Z0-9]*([._%+-]?[a-zA-Z0-9])*@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$",
     );
     return emailRegex.hasMatch(email);
   }
@@ -90,6 +92,19 @@ class _DashboardState extends State<Dashboard> {
         ),
         centerTitle: true,
         backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                (MaterialPageRoute(builder: (context) => LoginScreen())),
+                (route) => false,
+              );
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: coinList.isEmpty
           ? Center(child: CircularProgressIndicator())
@@ -186,16 +201,30 @@ class _DashboardState extends State<Dashboard> {
                                                   ),
                                                   SizedBox(height: 20),
                                                   TextFormField(
+                                                    //  inputFormatters: [
+                                                    //   FilteringTextInputFormatter.allow(
+                                                    //     r'^[a-zA-Z][0-9]',
+                                                    //   ),
+                                                    // ],
                                                     keyboardType:
                                                         TextInputType.text,
                                                     textInputAction:
                                                         TextInputAction.next,
+                                                    keyboardAppearance:
+                                                        Brightness.dark,
                                                     controller: nameController,
                                                     validator: (value) {
                                                       if (nameController
                                                           .text
                                                           .isEmpty) {
                                                         return 'Please provide your name';
+                                                      }
+                                                      if (!RegExp(
+                                                        r'^[a-zA-Z][0-9]',
+                                                      ).hasMatch(
+                                                        nameController.text,
+                                                      )) {
+                                                        return 'Name must start with a letter';
                                                       }
                                                       return null;
                                                     },
@@ -227,6 +256,7 @@ class _DashboardState extends State<Dashboard> {
                                                   ),
                                                   SizedBox(height: 20),
                                                   TextFormField(
+                                                   
                                                     keyboardType: TextInputType
                                                         .emailAddress,
                                                     textInputAction:
@@ -272,6 +302,10 @@ class _DashboardState extends State<Dashboard> {
                                                   SizedBox(height: 20),
 
                                                   TextFormField(
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly,
+                                                    ],
                                                     keyboardType:
                                                         TextInputType.phone,
                                                     textInputAction:
@@ -282,6 +316,19 @@ class _DashboardState extends State<Dashboard> {
                                                           .text
                                                           .isEmpty) {
                                                         return 'Please provide phone number';
+                                                      }
+                                                      if (!RegExp(
+                                                        r'^\+?[0-9]+$',
+                                                      ).hasMatch(
+                                                        phoneController.text,
+                                                      )) {
+                                                        return 'Phone number must contain only numbers';
+                                                      }
+                                                      if (phoneController
+                                                              .text
+                                                              .length <
+                                                          10) {
+                                                        return 'Invalid phone number';
                                                       }
                                                       return null;
                                                     },

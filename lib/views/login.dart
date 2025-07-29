@@ -1,6 +1,7 @@
 import 'package:coin_api_and_admin_panel/views/admin_panel.dart';
 import 'package:coin_api_and_admin_panel/views/dashboard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isEmailValid(String email) {
     final emailRegex = RegExp(
-      r"^[a-zA-Z0-9]+([._%+-]?[a-zA-Z0-9])*@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$",
+      r"^[a-zA-Z][a-zA-Z0-9]*([._%+-]?[a-zA-Z0-9])*@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$",
     );
     return emailRegex.hasMatch(email);
   }
@@ -67,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // ),
                   // SizedBox(height: 20),
                   TextFormField(
+               
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     controller: emailController,
@@ -136,18 +138,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (isValid) {
                         if (emailController.text == 'admin@gmail.com' &&
                             passwordController.text == 'admin12') {
-                          Navigator.push(
+                          Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
                               builder: (context) => AdminPanel(),
                             ),
+                            (route) => false,
                           );
                         } else {
-                          Navigator.push(
+                          Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
                               builder: (context) => Dashboard(),
                             ),
+                            (route) => false,
                           );
                         }
                       }

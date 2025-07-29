@@ -1,4 +1,5 @@
 import 'package:coin_api_and_admin_panel/models/booking_model.dart';
+import 'package:coin_api_and_admin_panel/views/login.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -11,12 +12,49 @@ class AdminPanel extends StatefulWidget {
 
 class _AdminPanelState extends State<AdminPanel> {
   late Box<BookingModel> bookingBox;
+  late Box bookingMetaBox;
+  TextEditingController _dateController = TextEditingController();
+  DateTime? selectedDate;
+  int? previousBookingCount;
 
   @override
   void initState() {
     super.initState();
-    // Open the Hive box
     bookingBox = Hive.box<BookingModel>('bookings');
+    bookingMetaBox = Hive.box('admin'); // Open your admin/meta box
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      int currentCount = bookingBox.length;
+      int savedCount = bookingMetaBox.get('booking_count', defaultValue: 0);
+
+      if (currentCount > savedCount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('New booking received'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+
+      bookingMetaBox.put('booking_count', currentCount);
+    });
+  }
+
+  void _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+        _dateController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
   }
 
   @override
@@ -33,6 +71,20 @@ class _AdminPanelState extends State<AdminPanel> {
         ),
         centerTitle: true,
         backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                (MaterialPageRoute(builder: (context) => LoginScreen())),
+                (route) => false,
+              );
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
+        iconTheme: IconThemeData(color: Colors.white),
+        // actionsPadding: const EdgeInsets.only(right: 8),
       ),
       body: ValueListenableBuilder(
         valueListenable: bookingBox.listenable(),
@@ -46,13 +98,48 @@ class _AdminPanelState extends State<AdminPanel> {
             );
           }
 
-          final bookingList = box.values.toList();
+          List<BookingModel> bookingList = box.values.toList();
+
+          if (selectedDate != null) {
+            bookingList = bookingList.where((booking) {
+              return booking.date == _dateController.text;
+            }).toList();
+          }
 
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
+                  SizedBox(height: 15),
+                  TextField(
+                    controller: _dateController,
+                    readOnly: true,
+                    onTap: _pickDate,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Filter by Date',
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.calendar_today),
+                            onPressed: _pickDate,
+                          ),
+                          if (_dateController.text.isNotEmpty)
+                            IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () {
+                                setState(() {
+                                  selectedDate = null;
+                                  _dateController.clear();
+                                });
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 15),
                   Expanded(
                     child: ListView.builder(

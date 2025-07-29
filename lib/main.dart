@@ -9,6 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(BookingModelAdapter());
+  await Hive.openBox('admin');
 
   // Open box before runApp
   await Hive.openBox<BookingModel>('bookings');
@@ -24,3 +25,5 @@ class MyApp extends StatelessWidget {
     return MaterialApp(debugShowCheckedModeBanner: false, home: LoginScreen());
   }
 }
+
+
